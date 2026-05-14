@@ -1,6 +1,8 @@
 require('dotenv').config({ path: '../.env' });
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -21,8 +23,32 @@ const pool = new Pool({
 });
 
 // Middleware
-app.use(cors());
+app.use(helmet());
+app.use(cors({
+  origin: process.env.CLIENT_URL || `http://localhost:${process.env.FRONTEND_PORT || 3000}`,
+  credentials: true
+}));
 app.use(express.json());
+
+// ─── Rate Limiters ───────────────────────────────────────────────
+const aiRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  keyGenerator: (req) => (req.user && req.user.id) ? String(req.user.id) : req.ip,
+  message: { error: 'AI rate limit exceeded. Max 20 requests per hour.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ─── parseAIJson ─────────────────────────────────────────────────
+function parseAIJson(text) {
+  try { return JSON.parse(text); } catch (e) {}
+  const stripped = text.replace(/```(?:json)?\n?/g, '').replace(/```/g, '').trim();
+  try { return JSON.parse(stripped); } catch (e) {}
+  const start = text.indexOf('{'); const end = text.lastIndexOf('}');
+  if (start !== -1 && end !== -1) { try { return JSON.parse(text.slice(start, end + 1)); } catch (e) {} }
+  return null;
+}
 
 // JWT Middleware
 const authenticateToken = (req, res, next) => {
@@ -2091,6 +2117,103 @@ app.get('/api/export/:type', authenticateToken, async (req, res) => {
   }
 });
 
+// AI Quality Score (apply pass 4 backlog)
+app.post('/api/ai/analyze-quality', authenticateToken, async (req, res) => {
+  try {
+    if (!process.env.OPENROUTER_API_KEY) {
+      return res.status(503).json({ error: 'AI not configured. Set OPENROUTER_API_KEY on the server.' });
+    }
+    const { testimonial_text, format = 'video', target_use = 'marketing website' } = req.body || {};
+    if (!testimonial_text) return res.status(400).json({ error: 'testimonial_text is required' });
+    const prompt = `Score the testimonial across multiple quality dimensions and return a JSON-only response.
+Format: ${format}
+Target use: ${target_use}
+Testimonial:
+"""
+${testimonial_text}
+"""
+
+Return JSON ONLY:
+{
+  "overall_score": <0-100>,
+  "dimensions": {
+    "clarity": <0-100>,
+    "specificity": <0-100>,
+    "emotional_impact": <0-100>,
+    "credibility": <0-100>,
+    "structure": <0-100>,
+    "length_fit": <0-100>
+  },
+  "strengths": [string],
+  "weaknesses": [string],
+  "recommendations": [string],
+  "publish_recommendation": "publish|edit|reject"
+}`;
+    const aiResponse = await callOpenRouter(prompt, 'You are a senior testimonial editor scoring video review quality.');
+    const result = {
+      quality_analysis: aiResponse.choices[0].message.content,
+      model: aiResponse.model,
+      usage: aiResponse.usage,
+      generatedAt: new Date().toISOString()
+    };
+    await saveAIGeneration(req.user.id, 'analyze-quality', req.body, result, aiResponse);
+    res.json({ success: true, result });
+  } catch (error) {
+    if (/OPENROUTER_API_KEY|api[_ ]?key/i.test(error.message || '')) {
+      return res.status(503).json({ error: 'AI not configured. Set OPENROUTER_API_KEY on the server.' });
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// AI Emotion-by-segment analysis (apply pass 4 backlog)
+app.post('/api/ai/analyze-emotion', authenticateToken, async (req, res) => {
+  try {
+    if (!process.env.OPENROUTER_API_KEY) {
+      return res.status(503).json({ error: 'AI not configured. Set OPENROUTER_API_KEY on the server.' });
+    }
+    const { transcript, segment_size = 'sentence', context } = req.body || {};
+    if (!transcript) return res.status(400).json({ error: 'transcript is required' });
+    const prompt = `Break the transcript into ${segment_size}-level segments and label the emotional tone of each.
+Context: ${context || 'video testimonial'}
+Transcript:
+"""
+${transcript}
+"""
+
+Return JSON ONLY:
+{
+  "segments": [
+    {
+      "index": number,
+      "text": string,
+      "primary_emotion": "joy|sadness|anger|fear|surprise|trust|anticipation|disgust|neutral",
+      "intensity": <0-100>,
+      "secondary_emotions": [string],
+      "notes": string
+    }
+  ],
+  "emotional_arc": "rising|falling|flat|mixed",
+  "peak_segment_index": number,
+  "summary": string
+}`;
+    const aiResponse = await callOpenRouter(prompt, 'You are an expert in narrative emotion analysis for video content.');
+    const result = {
+      emotion_analysis: aiResponse.choices[0].message.content,
+      model: aiResponse.model,
+      usage: aiResponse.usage,
+      generatedAt: new Date().toISOString()
+    };
+    await saveAIGeneration(req.user.id, 'analyze-emotion', req.body, result, aiResponse);
+    res.json({ success: true, result });
+  } catch (error) {
+    if (/OPENROUTER_API_KEY|api[_ ]?key/i.test(error.message || '')) {
+      return res.status(503).json({ error: 'AI not configured. Set OPENROUTER_API_KEY on the server.' });
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ==================== CSV EXPORT ====================
 app.get('/api/export/:type/csv', authenticateToken, async (req, res) => {
   try {
@@ -2136,10 +2259,167 @@ bulkDeleteEntities.forEach(entity => {
   });
 });
 
+// ===== Apply-pass-5 additions =====
+
+// Additive: testimonial_approvals table for approval workflow (TOO-RISKY-only-additive)
+let approvalsTableReady = false;
+async function ensureApprovalsTable() {
+  if (approvalsTableReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS testimonial_approvals (
+      id SERIAL PRIMARY KEY,
+      review_id INT,
+      submitted_by_user_id INT,
+      reviewer_user_id INT,
+      status VARCHAR(50) DEFAULT 'pending',
+      decision VARCHAR(50),
+      notes TEXT,
+      decided_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+  approvalsTableReady = true;
+}
+
+// POST /api/approvals — request approval for a testimonial
+app.post('/api/approvals', authenticateToken, async (req, res) => {
+  try {
+    await ensureApprovalsTable();
+    const { review_id, reviewer_user_id, notes } = req.body || {};
+    if (!review_id) return res.status(400).json({ error: 'review_id required' });
+    const r = await pool.query(
+      `INSERT INTO testimonial_approvals (review_id, submitted_by_user_id, reviewer_user_id, notes, status)
+       VALUES ($1,$2,$3,$4,'pending') RETURNING *`,
+      [review_id, req.user.id, reviewer_user_id || null, notes || null]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/approvals?status=
+app.get('/api/approvals', authenticateToken, async (req, res) => {
+  try {
+    await ensureApprovalsTable();
+    const { status, review_id } = req.query;
+    let q = 'SELECT * FROM testimonial_approvals';
+    const params = [];
+    const where = [];
+    if (status) { params.push(status); where.push(`status = $${params.length}`); }
+    if (review_id) { params.push(review_id); where.push(`review_id = $${params.length}`); }
+    if (where.length) q += ' WHERE ' + where.join(' AND ');
+    q += ' ORDER BY created_at DESC';
+    const r = await pool.query(q, params);
+    res.json(r.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/approvals/:id — record a decision
+app.patch('/api/approvals/:id', authenticateToken, async (req, res) => {
+  try {
+    await ensureApprovalsTable();
+    const { decision, notes } = req.body || {};
+    if (!decision || !['approved', 'rejected', 'changes_requested'].includes(decision)) {
+      return res.status(400).json({ error: 'decision must be approved|rejected|changes_requested' });
+    }
+    const r = await pool.query(
+      `UPDATE testimonial_approvals
+       SET status = 'decided', decision = $1, notes = COALESCE($2, notes), reviewer_user_id = $3, decided_at = NOW()
+       WHERE id = $4 RETURNING *`,
+      [decision, notes || null, req.user.id, req.params.id]
+    );
+    if (r.rows.length === 0) return res.status(404).json({ error: 'Approval not found' });
+    res.json(r.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/integrations/vimeo/upload
+// NEEDS-CREDS — env vars:
+//   - VIMEO_ACCESS_TOKEN (personal access token with upload scope)
+// Returns 503 + missing when unset.
+app.post('/api/integrations/vimeo/upload', authenticateToken, async (req, res) => {
+  if (!process.env.VIMEO_ACCESS_TOKEN) {
+    return res.status(503).json({
+      error: 'Vimeo integration not configured.',
+      missing: 'VIMEO_ACCESS_TOKEN',
+      documentation: 'Set VIMEO_ACCESS_TOKEN with upload scope to enable this feature.'
+    });
+  }
+  const { video_id, title, description } = req.body || {};
+  if (!video_id) return res.status(400).json({ error: 'video_id required' });
+  // Vendor SDK call intentionally not wired in this additive pass.
+  res.status(501).json({ error: 'Vimeo adapter not implemented; credential is set but vendor call has not been wired.', video_id, title, description });
+});
+
+// POST /api/integrations/youtube/upload
+// NEEDS-CREDS — env vars:
+//   - YOUTUBE_API_KEY
+//   - YOUTUBE_CLIENT_ID
+//   - YOUTUBE_CLIENT_SECRET
+app.post('/api/integrations/youtube/upload', authenticateToken, async (req, res) => {
+  const required = ['YOUTUBE_API_KEY', 'YOUTUBE_CLIENT_ID', 'YOUTUBE_CLIENT_SECRET'];
+  const missing = required.filter(k => !process.env[k]);
+  if (missing.length > 0) {
+    return res.status(503).json({
+      error: 'YouTube integration not configured.',
+      missing: missing.join(','),
+      documentation: 'Set YOUTUBE_API_KEY, YOUTUBE_CLIENT_ID, and YOUTUBE_CLIENT_SECRET (OAuth 2.0).'
+    });
+  }
+  const { video_id, title, description, privacy_status } = req.body || {};
+  if (!video_id) return res.status(400).json({ error: 'video_id required' });
+  res.status(501).json({ error: 'YouTube adapter not implemented; credentials set but vendor call has not been wired.', video_id, title, description, privacy_status: privacy_status || 'unlisted' });
+});
+
+// POST /api/recording-portal/issue-token
+// PRODUCT-DECISION: rather than building a full self-service web recording UI,
+// issue a short-lived JWT (15 min) bound to a review_id that a future portal
+// page can present to upload via existing /api/reviews endpoints.
+app.post('/api/recording-portal/issue-token', authenticateToken, async (req, res) => {
+  try {
+    const { review_id, expires_minutes } = req.body || {};
+    if (!review_id) return res.status(400).json({ error: 'review_id required' });
+    if (!process.env.JWT_SECRET) {
+      return res.status(503).json({ error: 'Recording portal not configured.', missing: 'JWT_SECRET' });
+    }
+    const ttl = Math.min(Math.max(parseInt(expires_minutes, 10) || 15, 1), 120);
+    const token = jwt.sign(
+      { kind: 'recording_portal', review_id, issued_by: req.user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: `${ttl}m` }
+    );
+    res.json({
+      token,
+      review_id,
+      expires_in_minutes: ttl,
+      portal_url_hint: `/recording-portal?token=${token}&review_id=${review_id}`,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+app.use('/api/testimonial-quality-scorer', require('./routes/testimonialQualityScorer')); app.use('/api/emotion-body-language', require('./routes/emotionBodyLanguage')); app.use('/api/auto-editing-assistant', require('./routes/autoEditingAssistant')); app.use('/api/sentiment-transcription', require('./routes/sentimentTranscription')); app.use('/api/campaign-optimizer', require('./routes/campaignOptimizer')); app.use('/api/realtime-recording-coach', require('./routes/realtimeRecordingCoach'));
+
+
+// === Batch 08 Gaps & Frontend Mounts ===
+app.use('/api/gap-ai-is-actually-substantial-18-endpoints-tsv-claim', require('./routes/gapAiIsActuallySubstantial18EndpointsTsvClaim'));
+app.use('/api/gap-no-vision-based-body-language-analysis-beyond-emotion', require('./routes/gapNoVisionBasedBodyLanguageAnalysisBeyondEmotion'));
+app.use('/api/gap-no-real-time-recording-coach-during-capture', require('./routes/gapNoRealTimeRecordingCoachDuringCapture'));
+app.use('/api/gap-no-native-linkedin-tiktok-publishing', require('./routes/gapNoNativeLinkedinTiktokPublishing'));
+app.use('/api/gap-no-collaboration-commenting-on-draft-testimonials', require('./routes/gapNoCollaborationCommentingOnDraftTestimonials'));
+app.use('/api/gap-limited-multi-approver-workflow-single-approvals-route', require('./routes/gapLimitedMultiApproverWorkflowSingleApprovalsRoute'));
+app.use('/api/gap-no-webhook-notifications-for-approval-state-changes', require('./routes/gapNoWebhookNotificationsForApprovalStateChanges'));
+app.use('/api/gap-no-multi-tenant-white-label-support', require('./routes/gapNoMultiTenantWhiteLabelSupport'));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
