@@ -1,6 +1,22 @@
 import React, { useState, useEffect, createContext, useContext, useCallback, Component } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+// === Batch 08 Gaps & Frontend Mounts ===
+import CfTestimonialQualityScorerEmotionalImpactClarityLength from './pages/CfTestimonialQualityScorerEmotionalImpactClarityLength'
+import CfEmotionalToneAndBodyLanguageAnalysisFor from './pages/CfEmotionalToneAndBodyLanguageAnalysisFor'
+import CfAutoEditingAssistantSuggestingCutsPacingAdjustments from './pages/CfAutoEditingAssistantSuggestingCutsPacingAdjustments'
+import CfTranscriptionWithEmotionSentimentMarkersTimelineAligned from './pages/CfTranscriptionWithEmotionSentimentMarkersTimelineAligned'
+import CfTestimonialCampaignOptimizerRecommendingSelectionAndOrdering from './pages/CfTestimonialCampaignOptimizerRecommendingSelectionAndOrdering'
+import CfRealTimeRecordingCoachGivingFeedbackDuring from './pages/CfRealTimeRecordingCoachGivingFeedbackDuring'
+import GapAiIsActuallySubstantial18EndpointsTsv from './pages/GapAiIsActuallySubstantial18EndpointsTsv'
+import GapNoVisionBasedBodyLanguageAnalysisBeyond from './pages/GapNoVisionBasedBodyLanguageAnalysisBeyond'
+import GapNoRealTimeRecordingCoachDuringCapture from './pages/GapNoRealTimeRecordingCoachDuringCapture'
+import GapNoNativeLinkedinTiktokPublishing from './pages/GapNoNativeLinkedinTiktokPublishing'
+import GapNoCollaborationCommentingOnDraftTestimonials from './pages/GapNoCollaborationCommentingOnDraftTestimonials'
+import GapLimitedMultiApproverWorkflowSingleApprovalsRoute from './pages/GapLimitedMultiApproverWorkflowSingleApprovalsRoute'
+import GapNoWebhookNotificationsForApprovalStateChanges from './pages/GapNoWebhookNotificationsForApprovalStateChanges'
+import GapNoMultiTenantWhiteLabelSupport from './pages/GapNoMultiTenantWhiteLabelSupport'
+import CustomViewsPage from './pages/CustomViewsPage'
 
 // API Configuration
 const API_URL = 'http://localhost:3001/api';
@@ -819,6 +835,7 @@ const Sidebar = ({ currentPage, onNavigate, isOpen, onToggle }) => {
       title: 'AI Features',
       items: [
         { id: 'ai-tools', label: 'AI Tools', icon: '🧠' },
+        { id: 'provider-render', label: 'Provider Render', icon: '🎥' },
         { id: 'interview-questions', label: 'Interview Questions', icon: '❓' },
         { id: 'sports-highlights', label: 'Sports Highlights', icon: '🏆' },
         { id: 'highlights', label: 'Highlights', icon: '✂️' },
@@ -832,6 +849,12 @@ const Sidebar = ({ currentPage, onNavigate, isOpen, onToggle }) => {
       items: [
         { id: 'analytics', label: 'Analytics', icon: '📈' },
         { id: 'settings', label: 'Settings', icon: '⚙️' },
+      ]
+    },
+    {
+      title: 'Custom Views',
+      items: [
+        { id: 'custom-views', label: 'Testimonial Views', icon: '🗂️', path: '/custom-views' },
       ]
     }
   ];
@@ -857,7 +880,7 @@ const Sidebar = ({ currentPage, onNavigate, isOpen, onToggle }) => {
           <div key={section.title} className="nav-section">
             <div className="nav-section-title">{section.title}</div>
             {section.items.map((item) => (
-              <div key={item.id} className={`nav-item ${currentPage === item.id ? 'active' : ''}`} onClick={() => { onNavigate(item.id); if (onToggle) onToggle(); }}>
+              <div key={item.id} className={`nav-item ${currentPage === item.id ? 'active' : ''}`} onClick={() => { if (item.path) { navigate(item.path); } else { onNavigate(item.id); } if (onToggle) onToggle(); }}>
                 <span>{item.icon}</span>
                 <span>{item.label}</span>
               </div>
@@ -1682,6 +1705,8 @@ const AIToolsPage = () => {
     { id: 'suggest-broll', title: 'B-Roll Suggester', description: 'Get B-roll recommendations', icon: '🎞️', color: '#9333ea', bg: '#f3e8ff' },
     { id: 'suggest-music', title: 'Music Matcher', description: 'Find perfect background music', icon: '🎵', color: '#ea580c', bg: '#ffedd5' },
     { id: 'generate-transcript', title: 'Transcript Generator', description: 'Generate video transcripts', icon: '📄', color: '#0d9488', bg: '#ccfbf1' },
+    { id: 'analyze-quality', title: 'Quality Score', description: 'Score testimonial across quality dimensions', icon: '⭐', color: '#facc15', bg: '#fef9c3' },
+    { id: 'analyze-emotion', title: 'Emotion Analysis', description: 'Per-segment emotional tone of a transcript', icon: '💗', color: '#f43f5e', bg: '#ffe4e6' },
   ];
 
   const handleSubmit = async (e) => {
@@ -1716,6 +1741,8 @@ const AIToolsPage = () => {
       'suggest-broll': [{ key: 'context', label: 'Video Context', type: 'textarea', required: true }, { key: 'industry', label: 'Industry', type: 'select', options: ['Technology', 'Healthcare', 'Finance', 'Creative', 'Manufacturing', 'Retail', 'Education', 'Hospitality', 'Nonprofit', 'SaaS'], required: true }, { key: 'mood', label: 'Mood', type: 'select', options: ['Energetic', 'Calm', 'Professional', 'Dynamic', 'Inspiring', 'Luxurious', 'Heartfelt'] }, { key: 'duration', label: 'Video Duration' }, { key: 'brand_guidelines', label: 'Brand Guidelines', type: 'textarea' }],
       'suggest-music': [{ key: 'content_description', label: 'Content Description', type: 'textarea', required: true }, { key: 'mood', label: 'Desired Mood', type: 'select', options: ['Inspiring', 'Energetic', 'Calm', 'Emotional', 'Professional', 'Playful', 'Luxurious', 'Motivating'], required: true }, { key: 'duration', label: 'Video Duration' }, { key: 'genre_preference', label: 'Genre Preference', type: 'select', options: ['No preference', 'Corporate', 'Electronic', 'Cinematic', 'Pop', 'Acoustic', 'Classical', 'Jazz'] }, { key: 'energy_level', label: 'Energy Level', type: 'select', options: ['Low', 'Medium', 'High'] }],
       'generate-transcript': [{ key: 'audio_description', label: 'Audio/Video Description', type: 'textarea', required: true }, { key: 'context', label: 'Context', type: 'textarea' }, { key: 'speakers', label: 'Number of Speakers', type: 'select', options: ['1', '2', '3', '4', '5+'] }, { key: 'language', label: 'Language', type: 'select', options: ['English', 'Spanish', 'French', 'German', 'Japanese', 'Mandarin'] }],
+      'analyze-quality': [{ key: 'testimonial_text', label: 'Testimonial Text', type: 'textarea', required: true }, { key: 'format', label: 'Format', type: 'select', options: ['video', 'audio', 'written'] }, { key: 'target_use', label: 'Target Use', type: 'select', options: ['marketing website', 'social media', 'sales deck', 'email campaign', 'paid ads'] }],
+      'analyze-emotion': [{ key: 'transcript', label: 'Transcript', type: 'textarea', required: true }, { key: 'segment_size', label: 'Segment Size', type: 'select', options: ['sentence', 'paragraph', 'phrase'] }, { key: 'context', label: 'Context', type: 'textarea' }],
     };
     return baseFields[selectedTool?.id] || [];
   };
@@ -1742,6 +1769,8 @@ const AIToolsPage = () => {
     'suggest-broll': { context: 'Creating a customer testimonial video for a healthcare SaaS company. The customer is a hospital administrator discussing how the software improved patient scheduling efficiency by 60% and reduced wait times. The video will be used on the company website and LinkedIn.', industry: 'Healthcare', mood: 'Professional', duration: '90 seconds', brand_guidelines: 'Clean, modern aesthetic. Primary colors: deep blue (#1e3a5f) and white. Avoid stock footage that looks overly staged. Prefer real hospital/clinic environments.' },
     'suggest-music': { content_description: 'A 60-second customer success story video featuring a startup founder explaining how our platform helped them scale from 10 to 500 employees. The tone is optimistic and forward-looking, with a mix of talking-head interview and office/team footage.', mood: 'Inspiring', duration: '60 seconds', genre_preference: 'Corporate', energy_level: 'Medium' },
     'generate-transcript': { audio_description: 'A podcast interview between a host and a SaaS company CEO discussing the future of AI in customer service. They cover topics including chatbot implementation, human-AI collaboration, customer satisfaction metrics, and predictions for the next 5 years. The conversation is casual but informative with some technical jargon.', context: 'Episode 47 of the "Tech Forward" podcast, recorded in a professional studio. This episode focuses on practical AI applications in customer-facing businesses.', speakers: '2', language: 'English' },
+    'analyze-quality': { testimonial_text: 'Honestly, I was skeptical when our team picked this platform, but six months in our customer churn dropped 22% and our support response time fell from 8 hours to under 1 hour. The dashboards are clear and the onboarding actually worked.', format: 'video', target_use: 'marketing website' },
+    'analyze-emotion': { transcript: 'When we first started, I was overwhelmed. Honestly, I was scared we would not make payroll. Then we adopted this platform and within weeks I felt this huge weight lift. Now I am genuinely excited about where the company is heading. We are hiring again, and the team has never been more energized.', segment_size: 'sentence', context: 'Founder testimonial about turning the business around.' },
   };
 
   const loadSampleData = () => {
@@ -2135,6 +2164,228 @@ const SettingsPage = () => {
   );
 };
 
+// Provider Render Page — surfaces /api/avatars/{provider}/generate + status endpoints
+const ProviderRenderPage = () => {
+  const [provider, setProvider] = useState('heygen');
+  const [scripts, setScripts] = useState([]);
+  const [avatars, setAvatars] = useState([]);
+  const [voiceovers, setVoiceovers] = useState([]);
+  const [scriptId, setScriptId] = useState('');
+  const [scriptText, setScriptText] = useState('');
+  const [avatarId, setAvatarId] = useState('');
+  const [voiceId, setVoiceId] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [background, setBackground] = useState('');
+  const [job, setJob] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [history, setHistory] = useState([]);
+  const toast = useToast();
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/scripts?limit=100'),
+      api.get('/avatars?limit=100'),
+      api.get('/voiceovers?limit=100')
+    ]).then(([s, a, v]) => {
+      setScripts(s.data.data || s.data);
+      setAvatars(a.data.data || a.data);
+      setVoiceovers(v.data.data || v.data);
+    }).catch(() => {});
+  }, []);
+
+  const filteredAvatars = avatars.filter(a =>
+    a.provider && a.provider.toLowerCase().includes(provider === 'did' ? 'd-id' : provider)
+  );
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    setJob(null);
+    setStatus(null);
+    try {
+      const payload = {
+        script: scriptText || (scripts.find(s => String(s.id) === String(scriptId))?.content) || '',
+        avatar_id: avatarId,
+        voice_id: voiceId
+      };
+      if (provider === 'did') payload.source_url = sourceUrl;
+      if (provider === 'synthesia') payload.background = background;
+
+      const res = await api.post(`/avatars/${provider}/generate`, payload);
+      setJob(res.data);
+      setHistory(prev => [{ ...res.data, ts: new Date().toISOString() }, ...prev].slice(0, 10));
+      toast?.showToast(`${res.data.provider || provider} job started!`, 'success');
+    } catch (err) {
+      toast?.showToast(err.response?.data?.error || 'Generation failed', 'error');
+    }
+    setLoading(false);
+  };
+
+  const handleCheckStatus = async (jobId) => {
+    setStatusLoading(true);
+    try {
+      const res = await api.get(`/avatars/${provider}/status/${jobId}`);
+      setStatus(res.data);
+    } catch (err) {
+      toast?.showToast('Status check failed', 'error');
+    }
+    setStatusLoading(false);
+  };
+
+  const providers = [
+    { id: 'heygen', label: 'HeyGen', desc: '2–5 minute video rendering with realistic talking avatars', color: '#3b82f6' },
+    { id: 'did', label: 'D-ID', desc: '1–3 minute photo-to-video animation', color: '#10b981' },
+    { id: 'synthesia', label: 'Synthesia', desc: '3–8 minute studio-quality avatar videos', color: '#f59e0b' }
+  ];
+
+  return (
+    <div>
+      <div className="page-header">
+        <h1 className="page-title">🎥 Provider Render</h1>
+      </div>
+      <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
+        Trigger video rendering jobs against HeyGen, D-ID, or Synthesia and poll their status.
+      </p>
+
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <div style={{ padding: '1.5rem' }}>
+          <h3 style={{ marginBottom: '1rem' }}>1. Select Provider</h3>
+          <div className="selection-grid">
+            {providers.map(p => (
+              <div
+                key={p.id}
+                className={`selection-card ${provider === p.id ? 'selected' : ''}`}
+                onClick={() => setProvider(p.id)}
+                style={{ borderColor: provider === p.id ? p.color : undefined }}
+              >
+                <div className="selection-card-title">{p.label}</div>
+                <div className="selection-card-subtitle">{p.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <div style={{ padding: '1.5rem' }}>
+          <h3 style={{ marginBottom: '1rem' }}>2. Configure Job</h3>
+          <div className="form-group">
+            <label className="form-label">Script (pick existing or paste below)</label>
+            <select className="select" value={scriptId} onChange={(e) => {
+              setScriptId(e.target.value);
+              const s = scripts.find(ss => String(ss.id) === e.target.value);
+              if (s) setScriptText(s.content || '');
+            }}>
+              <option value="">— Select a saved script —</option>
+              {scripts.map(s => <option key={s.id} value={s.id}>#{s.id} {(s.content || '').substring(0, 60)}…</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Script Content</label>
+            <textarea className="form-input" rows={4} value={scriptText} onChange={(e) => setScriptText(e.target.value)} placeholder="Paste or edit the script…" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Avatar (provider-specific ID)</label>
+            <select className="select" value={avatarId} onChange={(e) => setAvatarId(e.target.value)}>
+              <option value="">— Select an avatar —</option>
+              {filteredAvatars.map(a => <option key={a.id} value={a.avatar_id || a.id}>{a.name} ({a.provider})</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Voice (optional)</label>
+            <select className="select" value={voiceId} onChange={(e) => setVoiceId(e.target.value)}>
+              <option value="">— Default —</option>
+              {voiceovers.map(v => <option key={v.id} value={v.voice_id || v.id}>{v.name} ({v.provider} · {v.language})</option>)}
+            </select>
+          </div>
+          {provider === 'did' && (
+            <div className="form-group">
+              <label className="form-label">Source Image URL (D-ID requires)</label>
+              <input className="form-input" type="text" value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} placeholder="https://…" />
+            </div>
+          )}
+          {provider === 'synthesia' && (
+            <div className="form-group">
+              <label className="form-label">Background</label>
+              <input className="form-input" type="text" value={background} onChange={(e) => setBackground(e.target.value)} placeholder="e.g., office, studio, custom URL" />
+            </div>
+          )}
+          <button className="btn btn-primary" onClick={handleGenerate} disabled={loading || !scriptText}>
+            {loading ? 'Submitting…' : `Render with ${providers.find(p => p.id === provider)?.label}`}
+          </button>
+        </div>
+      </div>
+
+      {job && (
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <div style={{ padding: '1.5rem' }}>
+            <h3 style={{ marginBottom: '1rem' }}>3. Job Result</h3>
+            <div className="detail-grid" style={{ marginBottom: '1rem' }}>
+              <div className="detail-item"><div className="detail-label">Provider</div><div className="detail-value">{job.provider}</div></div>
+              <div className="detail-item"><div className="detail-label">Job ID</div><div className="detail-value"><code>{job.job_id}</code></div></div>
+              <div className="detail-item"><div className="detail-label">Status</div><div className="detail-value"><span className="badge badge-warning">{job.status}</span></div></div>
+              <div className="detail-item"><div className="detail-label">ETA</div><div className="detail-value">{job.estimated_time}</div></div>
+            </div>
+            <button className="btn btn-secondary" onClick={() => handleCheckStatus(job.job_id)} disabled={statusLoading}>
+              {statusLoading ? 'Checking…' : 'Check Status'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {status && (
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <div style={{ padding: '1.5rem' }}>
+            <h3 style={{ marginBottom: '1rem' }}>Status</h3>
+            <div className="detail-grid">
+              <div className="detail-item"><div className="detail-label">Status</div><div className="detail-value"><span className={`badge badge-${status.status === 'completed' ? 'success' : 'warning'}`}>{status.status}</span></div></div>
+              <div className="detail-item"><div className="detail-label">Duration</div><div className="detail-value">{status.duration ? `${status.duration}s` : '—'}</div></div>
+              <div className="detail-item"><div className="detail-label">Created</div><div className="detail-value">{status.created_at ? new Date(status.created_at).toLocaleString() : '—'}</div></div>
+            </div>
+            {status.video_url && (
+              <div style={{ marginTop: '1rem' }}>
+                <strong>Video URL:</strong>{' '}
+                <a href={status.video_url} target="_blank" rel="noreferrer">{status.video_url}</a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {history.length > 0 && (
+        <div className="card">
+          <div style={{ padding: '1.5rem' }}>
+            <h3 style={{ marginBottom: '1rem' }}>Recent Jobs (this session)</h3>
+            <table className="data-table" style={{ width: '100%' }}>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Provider</th>
+                  <th>Job ID</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((h, idx) => (
+                  <tr key={idx}>
+                    <td>{new Date(h.ts).toLocaleTimeString()}</td>
+                    <td>{h.provider}</td>
+                    <td><code>{h.job_id}</code></td>
+                    <td><span className="badge badge-warning">{h.status}</span></td>
+                    <td><button className="btn btn-sm btn-secondary" onClick={() => handleCheckStatus(h.job_id)}>Status</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Main App Layout
 const AppLayout = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -2151,6 +2402,7 @@ const AppLayout = () => {
       case 'videos': return <VideosPage />;
       case 'create-video': return <CreateVideoPage />;
       case 'ai-tools': return <AIToolsPage />;
+      case 'provider-render': return <ProviderRenderPage />;
       case 'interview-questions': return <InterviewQuestionsPage />;
       case 'sports-highlights': return <SportsHighlightsPage />;
       case 'highlights': return <HighlightsPage />;
@@ -2217,7 +2469,23 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/dashboard" element={<ProtectedRoute><AppLayout /></ProtectedRoute>} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
-          </Routes>
+          {/* // === Batch 08 Gaps & Frontend Mounts === */}
+      <Route path="/cf-testimonial-quality-scorer-emotional-impact-clarity-length" element={<ProtectedRoute><CfTestimonialQualityScorerEmotionalImpactClarityLength /></ProtectedRoute>} />
+      <Route path="/cf-emotional-tone-and-body-language-analysis-for-authenticity-scoring" element={<ProtectedRoute><CfEmotionalToneAndBodyLanguageAnalysisFor /></ProtectedRoute>} />
+      <Route path="/cf-auto-editing-assistant-suggesting-cuts-pacing-adjustments-retakes" element={<ProtectedRoute><CfAutoEditingAssistantSuggestingCutsPacingAdjustments /></ProtectedRoute>} />
+      <Route path="/cf-transcription-with-emotion-sentiment-markers-timeline-aligned" element={<ProtectedRoute><CfTranscriptionWithEmotionSentimentMarkersTimelineAligned /></ProtectedRoute>} />
+      <Route path="/cf-testimonial-campaign-optimizer-recommending-selection-and-ordering" element={<ProtectedRoute><CfTestimonialCampaignOptimizerRecommendingSelectionAndOrdering /></ProtectedRoute>} />
+      <Route path="/cf-real-time-recording-coach-giving-feedback-during-capture" element={<ProtectedRoute><CfRealTimeRecordingCoachGivingFeedbackDuring /></ProtectedRoute>} />
+      <Route path="/gap-ai-is-actually-substantial-18-endpoints-tsv-claim" element={<ProtectedRoute><GapAiIsActuallySubstantial18EndpointsTsv /></ProtectedRoute>} />
+      <Route path="/gap-no-vision-based-body-language-analysis-beyond-emotion" element={<ProtectedRoute><GapNoVisionBasedBodyLanguageAnalysisBeyond /></ProtectedRoute>} />
+      <Route path="/gap-no-real-time-recording-coach-during-capture" element={<ProtectedRoute><GapNoRealTimeRecordingCoachDuringCapture /></ProtectedRoute>} />
+      <Route path="/gap-no-native-linkedin-tiktok-publishing" element={<ProtectedRoute><GapNoNativeLinkedinTiktokPublishing /></ProtectedRoute>} />
+      <Route path="/gap-no-collaboration-commenting-on-draft-testimonials" element={<ProtectedRoute><GapNoCollaborationCommentingOnDraftTestimonials /></ProtectedRoute>} />
+      <Route path="/gap-limited-multi-approver-workflow-single-approvals-route" element={<ProtectedRoute><GapLimitedMultiApproverWorkflowSingleApprovalsRoute /></ProtectedRoute>} />
+      <Route path="/gap-no-webhook-notifications-for-approval-state-changes" element={<ProtectedRoute><GapNoWebhookNotificationsForApprovalStateChanges /></ProtectedRoute>} />
+      <Route path="/gap-no-multi-tenant-white-label-support" element={<ProtectedRoute><GapNoMultiTenantWhiteLabelSupport /></ProtectedRoute>} />
+      <Route path="/custom-views" element={<ProtectedRoute><CustomViewsPage /></ProtectedRoute>} />
+      </Routes>
         </BrowserRouter>
       </ToastProvider>
     </AuthProvider>
