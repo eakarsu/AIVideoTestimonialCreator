@@ -31,10 +31,12 @@ app.use(cors({
 app.use(express.json());
 
 // ─── Rate Limiters ───────────────────────────────────────────────
+let ipKeyGenerator;
+try { ipKeyGenerator = require('express-rate-limit').ipKeyGenerator; } catch (e) { ipKeyGenerator = (req) => req.ip; }
 const aiRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 20,
-  keyGenerator: (req) => (req.user && req.user.id) ? String(req.user.id) : req.ip,
+  keyGenerator: (req) => (req.user && req.user.id) ? String(req.user.id) : (typeof ipKeyGenerator === 'function' ? ipKeyGenerator(req) : req.ip),
   message: { error: 'AI rate limit exceeded. Max 20 requests per hour.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -2420,6 +2422,9 @@ app.use('/api/gap-no-collaboration-commenting-on-draft-testimonials', require('.
 app.use('/api/gap-limited-multi-approver-workflow-single-approvals-route', require('./routes/gapLimitedMultiApproverWorkflowSingleApprovalsRoute'));
 app.use('/api/gap-no-webhook-notifications-for-approval-state-changes', require('./routes/gapNoWebhookNotificationsForApprovalStateChanges'));
 app.use('/api/gap-no-multi-tenant-white-label-support', require('./routes/gapNoMultiTenantWhiteLabelSupport'));
+
+// Custom Views (mounted before any 404 handler)
+app.use('/api/custom-views', require('./routes/customViews'));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

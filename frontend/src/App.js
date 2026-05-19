@@ -16,6 +16,7 @@ import GapNoCollaborationCommentingOnDraftTestimonials from './pages/GapNoCollab
 import GapLimitedMultiApproverWorkflowSingleApprovalsRoute from './pages/GapLimitedMultiApproverWorkflowSingleApprovalsRoute'
 import GapNoWebhookNotificationsForApprovalStateChanges from './pages/GapNoWebhookNotificationsForApprovalStateChanges'
 import GapNoMultiTenantWhiteLabelSupport from './pages/GapNoMultiTenantWhiteLabelSupport'
+import CustomViewsPage from './pages/CustomViewsPage'
 
 // API Configuration
 const API_URL = 'http://localhost:3001/api';
@@ -849,6 +850,12 @@ const Sidebar = ({ currentPage, onNavigate, isOpen, onToggle }) => {
         { id: 'analytics', label: 'Analytics', icon: '📈' },
         { id: 'settings', label: 'Settings', icon: '⚙️' },
       ]
+    },
+    {
+      title: 'Custom Views',
+      items: [
+        { id: 'custom-views', label: 'Testimonial Views', icon: '🗂️', path: '/custom-views' },
+      ]
     }
   ];
 
@@ -873,7 +880,7 @@ const Sidebar = ({ currentPage, onNavigate, isOpen, onToggle }) => {
           <div key={section.title} className="nav-section">
             <div className="nav-section-title">{section.title}</div>
             {section.items.map((item) => (
-              <div key={item.id} className={`nav-item ${currentPage === item.id ? 'active' : ''}`} onClick={() => { onNavigate(item.id); if (onToggle) onToggle(); }}>
+              <div key={item.id} className={`nav-item ${currentPage === item.id ? 'active' : ''}`} onClick={() => { if (item.path) { navigate(item.path); } else { onNavigate(item.id); } if (onToggle) onToggle(); }}>
                 <span>{item.icon}</span>
                 <span>{item.label}</span>
               </div>
@@ -2477,6 +2484,7 @@ const App = () => (
       <Route path="/gap-limited-multi-approver-workflow-single-approvals-route" element={<ProtectedRoute><GapLimitedMultiApproverWorkflowSingleApprovalsRoute /></ProtectedRoute>} />
       <Route path="/gap-no-webhook-notifications-for-approval-state-changes" element={<ProtectedRoute><GapNoWebhookNotificationsForApprovalStateChanges /></ProtectedRoute>} />
       <Route path="/gap-no-multi-tenant-white-label-support" element={<ProtectedRoute><GapNoMultiTenantWhiteLabelSupport /></ProtectedRoute>} />
+      <Route path="/custom-views" element={<ProtectedRoute><CustomViewsPage /></ProtectedRoute>} />
       </Routes>
         </BrowserRouter>
       </ToastProvider>
