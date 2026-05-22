@@ -2411,6 +2411,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 app.use('/api/testimonial-quality-scorer', require('./routes/testimonialQualityScorer')); app.use('/api/emotion-body-language', require('./routes/emotionBodyLanguage')); app.use('/api/auto-editing-assistant', require('./routes/autoEditingAssistant')); app.use('/api/sentiment-transcription', require('./routes/sentimentTranscription')); app.use('/api/campaign-optimizer', require('./routes/campaignOptimizer')); app.use('/api/realtime-recording-coach', require('./routes/realtimeRecordingCoach'));
+app.use('/api/consent-rights-check', require('./routes/consentRightsCheck'));
 
 
 // === Batch 08 Gaps & Frontend Mounts ===

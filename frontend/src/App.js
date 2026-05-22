@@ -1,6 +1,12 @@
 import React, { useState, useEffect, createContext, useContext, useCallback, Component } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
+import ConsentRightsCheck from './pages/ConsentRightsCheck';
+
 // === Batch 08 Gaps & Frontend Mounts ===
 import CfTestimonialQualityScorerEmotionalImpactClarityLength from './pages/CfTestimonialQualityScorerEmotionalImpactClarityLength'
 import CfEmotionalToneAndBodyLanguageAnalysisFor from './pages/CfEmotionalToneAndBodyLanguageAnalysisFor'
@@ -842,6 +848,7 @@ const Sidebar = ({ currentPage, onNavigate, isOpen, onToggle }) => {
         { id: 'broll-suggestions', label: 'B-Roll Suggester', icon: '🎞️' },
         { id: 'music-matches', label: 'Music Matcher', icon: '🎵' },
         { id: 'transcripts', label: 'Transcripts', icon: '📄' },
+        { id: 'consent-rights-check', label: 'Consent Rights', icon: '✅' },
       ]
     },
     {
@@ -2409,6 +2416,7 @@ const AppLayout = () => {
       case 'broll-suggestions': return <BRollSuggestionsPage />;
       case 'music-matches': return <MusicMatchesPage />;
       case 'transcripts': return <TranscriptsPage />;
+      case 'consent-rights-check': return <ConsentRightsCheck />;
       case 'analytics': return <AnalyticsPage />;
       case 'settings': return <SettingsPage />;
       default: return <DashboardPage onNavigate={setCurrentPage} />;
@@ -2463,6 +2471,10 @@ const App = () => (
       <ToastProvider>
         <BrowserRouter>
           <Routes>
+        <Route path="/insights/timeline" element={<ProtectedRoute><TimelineView /></ProtectedRoute>} />
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
