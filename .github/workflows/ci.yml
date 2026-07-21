@@ -1,0 +1,49 @@
+name: governed-testimonial-ci
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testimonials_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/testimonials_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Backend dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Backend governed tests
+        working-directory: backend
+        run: npm test
+      - name: JavaScript syntax
+        run: find backend -path backend/node_modules -prune -o -name '*.js' -type f -print0 | xargs -0 -n1 node --check
+      - name: Apply governed migration
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/migrations/001_governed_testimonials.sql
+      - name: Frontend dependencies and build
+        working-directory: frontend
+        run: npm ci && npm run build
+      - name: Launcher safety
+        run: bash -n start.sh scripts/*.sh

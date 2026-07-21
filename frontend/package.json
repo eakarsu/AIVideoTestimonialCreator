@@ -7,11 +7,12 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
     "axios": "^1.6.2",
+    "http-proxy-middleware": "^2.0.9",
     "react-scripts": "5.0.1",
     "lucide-react": "^0.294.0"
   },
   "scripts": {
-    "start": "PORT=3000 react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build"
   },
   "browserslist": {
