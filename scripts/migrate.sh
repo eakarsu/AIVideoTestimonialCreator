@@ -7,3 +7,4 @@ set -a
 set +a
 : "${DATABASE_URL:?DATABASE_URL is required}"
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$project_dir/backend/migrations/001_governed_testimonials.sql"
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$project_dir/backend/migrations/002_runtime_ai_results.sql"

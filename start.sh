@@ -3,6 +3,12 @@ set -euo pipefail
 
 project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mode="${1:-start}"
+if [[ -f "$project_dir/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$project_dir/.env"
+  set +a
+fi
 backend_port="${BACKEND_PORT:-${PORT:-3001}}"
 frontend_port="${FRONTEND_PORT:-3000}"
 
@@ -25,11 +31,15 @@ case "$mode" in
     ;;
   start)
     "$0" check
+    if [[ "${MIGRATE_ON_START:-false}" == "true" || "${ALLOW_SCHEMA_MIGRATION:-false}" == "true" ]]; then
+      "$project_dir/scripts/migrate.sh"
+      ALLOW_DEVELOPMENT_SEED=true "$project_dir/scripts/seed-development.sh"
+    fi
     backend_pid=""
     frontend_pid=""
     cleanup() { kill ${backend_pid:+"$backend_pid"} ${frontend_pid:+"$frontend_pid"} 2>/dev/null || true; }
     trap cleanup INT TERM EXIT
-    (cd "$project_dir/frontend" && BACKEND_PORT="$backend_port" PORT="$frontend_port" BROWSER=none npm start) & frontend_pid=$!
+    (cd "$project_dir/frontend" && BACKEND_PORT="$backend_port" PORT="$frontend_port" BROWSER=none exec ./node_modules/.bin/react-scripts start) & frontend_pid=$!
     sleep 1
     kill -0 "$frontend_pid" 2>/dev/null || { echo "Frontend failed to start on port $frontend_port" >&2; exit 1; }
     (cd "$project_dir/backend" && exec node server.js) & backend_pid=$!

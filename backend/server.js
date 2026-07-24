@@ -10,6 +10,7 @@ const { createPool } = require('./db');
 const { assertAuthConfiguration, authentication } = require('./middleware/auth');
 const { createAuthRouter } = require('./routes/auth');
 const { createGovernedTestimonialsRouter } = require('./routes/governedTestimonials');
+const { createRuntimeAiRouter } = require('./routes/runtimeAi');
 const { DomainError } = require('./domain/testimonialWorkflow');
 
 function assertConfiguration(env = process.env) {
@@ -38,6 +39,7 @@ function createApp({ pool, env = process.env }) {
   app.get('/api/health', health);
   app.use('/api/auth', createAuthRouter(pool, env));
   app.use('/api/governed-testimonials', authentication(pool, env), createGovernedTestimonialsRouter(pool, env));
+  app.use('/api/ai', authentication(pool, env), createRuntimeAiRouter(pool, env));
   app.use((_req, res) => res.status(404).json({ error: 'not_found' }));
   app.use((error, _req, res, _next) => {
     if (error instanceof DomainError) {
