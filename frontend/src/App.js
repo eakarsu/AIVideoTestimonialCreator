@@ -621,7 +621,7 @@ const LoginPage = () => {
           </div>
           {error && <p style={{ color: '#ef4444', marginBottom: '1rem', textAlign: 'center' }}>{error}</p>}
           <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</button>
-          <button type="button" className="btn auto-fill-btn" onClick={autoFill}>Auto-fill Demo Credentials</button>
+          <button type="button" className="btn auto-fill-btn" onClick={autoFill}>Auto Fill Demo Credentials</button>
         </form>
         <div style={{ marginTop: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <button className="link-btn" onClick={() => navigate('/register')}>Don't have an account? Sign Up</button>
