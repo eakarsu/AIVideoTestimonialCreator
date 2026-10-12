@@ -1,3 +1,5 @@
+import AIReportLibrary from "./components/AIReportLibrary";
+import AIReport from "./components/AIReport";
 import React, { useState, useEffect, createContext, useContext, useCallback, Component } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -600,9 +602,11 @@ const LoginPage = () => {
     setLoading(false);
   };
 
+  const demoAvailable = process.env.REACT_APP_ENABLE_DEMO_CREDENTIAL_AUTOFILL === 'true' && Boolean(process.env.REACT_APP_DEMO_EMAIL && process.env.REACT_APP_DEMO_PASSWORD);
   const autoFill = () => {
     setEmail(process.env.REACT_APP_DEMO_EMAIL || '');
     setPassword(process.env.REACT_APP_DEMO_PASSWORD || '');
+    setError('');
   };
 
   return (
@@ -621,7 +625,7 @@ const LoginPage = () => {
           </div>
           {error && <p style={{ color: '#ef4444', marginBottom: '1rem', textAlign: 'center' }}>{error}</p>}
           <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</button>
-          <button type="button" className="btn auto-fill-btn" onClick={autoFill}>Auto Fill Demo Credentials</button>
+          {demoAvailable ? <button type="button" className="btn auto-fill-btn" onClick={autoFill}>Fill demo credentials</button> : <p className="login-subtitle">Demo credentials are not configured for this build.</p>}
         </form>
         <div style={{ marginTop: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <button className="link-btn" onClick={() => navigate('/register')}>Don't have an account? Sign Up</button>
@@ -934,104 +938,6 @@ const Modal = ({ isOpen, onClose, title, children, footer, wide }) => {
   );
 };
 
-// Professional AI Result Display Component
-const AIResultDisplay = ({ result, loading }) => {
-  if (loading) return <div className="ai-result"><div className="loading"><div className="spinner"></div></div></div>;
-  if (!result) return null;
-
-  const content = result.script || result.enhanced_review || result.suggestions || result.analysis || result.metadata || result.cta_options || result.translation || result.template_suggestions || result.package || result.variations || result.questions || result.highlights || result.broll_suggestions || result.music_suggestions || result.transcript;
-
-  // Parse and format the AI output professionally
-  const formatContent = (text) => {
-    if (!text) return null;
-
-    const sections = [];
-    const lines = text.split('\n');
-    let currentSection = { title: '', content: [] };
-
-    lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
-
-      // Check if it's a header (starts with number, #, or all caps with colon)
-      if (/^(\d+\.|#{1,3}|[A-Z][A-Z\s]+:)/.test(trimmedLine) && trimmedLine.length < 80) {
-        if (currentSection.content.length > 0 || currentSection.title) {
-          sections.push({ ...currentSection });
-        }
-        currentSection = {
-          title: trimmedLine.replace(/^(\d+\.|#{1,3}\s*)/, '').replace(/:$/, '').trim(),
-          content: []
-        };
-      } else if (trimmedLine) {
-        currentSection.content.push(trimmedLine);
-      }
-    });
-
-    if (currentSection.content.length > 0 || currentSection.title) {
-      sections.push(currentSection);
-    }
-
-    if (sections.length === 0) {
-      return <div className="ai-output-content">{text}</div>;
-    }
-
-    return sections.map((section, idx) => (
-      <div key={idx} className="ai-output-section">
-        {section.title && (
-          <div className="ai-output-title">
-            <span style={{ color: '#667eea' }}>{'>'}</span>
-            {section.title}
-          </div>
-        )}
-        <div className="ai-output-content">
-          {section.content.map((line, lineIdx) => {
-            // Format bullet points
-            if (line.startsWith('-') || line.startsWith('*') || line.startsWith('•')) {
-              return <div key={lineIdx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ color: '#667eea' }}>•</span>
-                <span>{line.replace(/^[-*•]\s*/, '')}</span>
-              </div>;
-            }
-            // Format quoted text
-            if (line.startsWith('"') || line.startsWith("'")) {
-              return <div key={lineIdx} className="ai-output-quote">{line}</div>;
-            }
-            return <p key={lineIdx} style={{ marginBottom: '0.5rem' }}>{line}</p>;
-          })}
-        </div>
-      </div>
-    ));
-  };
-
-  return (
-    <div className="ai-result">
-      <div className="ai-result-header">
-        <span style={{ fontSize: '1.5rem' }}>✨</span>
-        <span>AI Generated Result</span>
-        <span className="badge badge-success" style={{ marginLeft: 'auto' }}>Success</span>
-      </div>
-      <div className="ai-output-container">
-        {formatContent(content)}
-      </div>
-      <div className="ai-result-meta">
-        <div className="ai-result-meta-item">
-          <span>🤖</span>
-          <span>Model: {result.model || 'Claude Haiku'}</span>
-        </div>
-        {result.usage && (
-          <div className="ai-result-meta-item">
-            <span>📊</span>
-            <span>Tokens: {result.usage.total_tokens}</span>
-          </div>
-        )}
-        <div className="ai-result-meta-item">
-          <span>⏱️</span>
-          <span>Generated: {new Date(result.generatedAt).toLocaleTimeString()}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // Dashboard Page
 const DashboardPage = ({ onNavigate }) => {
   const [stats, setStats] = useState(null);
@@ -1311,7 +1217,7 @@ const ListPage = ({ title, endpoint, columns, formFields, cardIcon, filterOption
   const entityName = entityNames[endpoint] || 'Item';
 
   return (
-    <div>
+    <><AIReportLibrary floating /><div>
       <ConfirmDialog isOpen={confirmOpen} title="Delete Confirmation" message={`Are you sure you want to delete? This action cannot be undone.`} confirmText="Delete" danger onConfirm={() => { setConfirmOpen(false); confirmAction?.(); }} onCancel={() => setConfirmOpen(false)} />
 
       <div className="page-header">
@@ -1403,8 +1309,8 @@ const ListPage = ({ title, endpoint, columns, formFields, cardIcon, filterOption
                 <div className="detail-label">{key.replace(/_/g, ' ')}</div>
                 <div className="detail-value">
                   {key === 'rating' ? <span className="rating-stars">{renderStars(value)}</span> :
-                   typeof value === 'object' ? <pre style={{ fontSize: '0.8rem', overflow: 'auto' }}>{JSON.stringify(value, null, 2)}</pre> :
-                   value?.toString() || '-'}
+                   typeof value === 'object' ? <AIReport response={value} title={key.replace(/_/g, ' ')} /> :
+                   value === null || value === undefined ? '-' : value.toString()}
                 </div>
               </div>
             ))}
@@ -1433,7 +1339,7 @@ const ListPage = ({ title, endpoint, columns, formFields, cardIcon, filterOption
           </form>
         </div>
       </Modal>
-    </div>
+    </div></>
   );
 };
 
@@ -1780,10 +1686,36 @@ const AIToolsPage = () => {
     'analyze-emotion': { transcript: 'When we first started, I was overwhelmed. Honestly, I was scared we would not make payroll. Then we adopted this platform and within weeks I felt this huge weight lift. Now I am genuinely excited about where the company is heading. We are hiring again, and the team has never been more energized.', segment_size: 'sentence', context: 'Founder testimonial about turning the business around.' },
   };
 
-  const loadSampleData = () => {
-    if (selectedTool && sampleData[selectedTool.id]) {
-      setFormData(sampleData[selectedTool.id]);
-    }
+  const presetScenarios = [
+    { label: 'SaaS customer', customer: 'Sarah Mitchell', company: 'CloudScale Solutions', industry: 'Technology', story: 'After adopting our customer success platform, the team reduced churn by 22% in six months. The onboarding took two weeks, and the account team helped staff learn the dashboards. This testimonial is for a 60-second website video.', context: 'A mid-size software team is preparing a customer testimonial for its website and sales team.' },
+    { label: 'Healthcare team', customer: 'Dr. James Chen', company: 'MedVista Health', industry: 'Healthcare', story: 'Our scheduling team reduced average patient wait times from 42 to 25 minutes after rolling out the new booking system. Staff needed training at first, but patients now receive clearer reminders. This testimonial is for a short clinic website video.', context: 'A clinic administrator is reviewing a patient scheduling case study for a short website video.' },
+    { label: 'Retail campaign', customer: 'Alex Rivera', company: 'ShopStream', industry: 'Retail', story: 'The online store used improved product recommendations during its spring campaign. Conversion rose from 3.1% to 3.8% over eight weeks, while the team kept its existing checkout. This testimonial will support an email and social campaign.', context: 'An ecommerce manager is preparing a customer success clip for email and social channels.' },
+  ];
+  const loadSampleData = (variant) => {
+    if (!selectedTool) return;
+    const scenario = presetScenarios[variant];
+    const base = sampleData[selectedTool.id] || {};
+    const next = Object.fromEntries(getFormFields().map((field) => {
+      if (variant === 0 && base[field.key] !== undefined) return [field.key, base[field.key]];
+      if (field.options) return [field.key, field.options[variant % field.options.length]];
+      const values = {
+        review_text: scenario.story, text: scenario.story, testimonial_text: scenario.story,
+        script: `Meet ${scenario.customer} from ${scenario.company}. ${scenario.story} Learn how their team made the change and what they measured.`,
+        transcript: `${scenario.customer}: At first, our team needed time to adjust. ${scenario.story} I feel confident sharing the results now.`,
+        video_description: `${scenario.context} Footage includes a customer interview, workplace scenes, and a closing product shot. Highlight the measured outcome and the customer's own words.`,
+        content_description: `${scenario.context} The recording includes an introduction, a customer interview about the problem and results, and a product demonstration.`,
+        audio_description: `${scenario.context} Two speakers discuss the starting problem, rollout, measured result, and remaining limitations.`,
+        customer_name: scenario.customer, company: scenario.company, industry: scenario.industry,
+        topic: `Customer results at ${scenario.company}`, context: scenario.context,
+        product_service: `${scenario.industry} customer experience platform`,
+        brand_colors: variant === 1 ? '#164e63, #f8fafc' : '#1e3a8a, #f8fafc',
+        duration: '60 seconds', purpose: 'Select a clear customer outcome for a short campaign video.',
+        brand_guidelines: "Use a calm, credible tone, readable captions, and the customer's approved claims only.",
+      };
+      return [field.key, values[field.key] ?? base[field.key] ?? `${scenario.context} Focus on the measured outcome and state any assumptions.`];
+    }));
+    setFormData((current) => ({ ...current, ...next }));
+    setResult(null);
   };
 
   const HistoryPanel = () => (
@@ -1814,9 +1746,9 @@ const AIToolsPage = () => {
                     <button className="history-delete-btn" onClick={(e) => deleteHistoryItem(e, item.id)}>Delete</button>
                   </div>
                 </div>
-                {selectedHistoryItem?.id === item.id && selectedHistoryItem.output_data && (
+                {selectedHistoryItem?.id === item.id && selectedHistoryItem.output_data !== null && selectedHistoryItem.output_data !== undefined && (
                   <div style={{ marginBottom: '0.75rem' }}>
-                    <AIResultDisplay result={typeof selectedHistoryItem.output_data === 'string' ? JSON.parse(selectedHistoryItem.output_data) : selectedHistoryItem.output_data} loading={false} />
+                    <AIReport response={selectedHistoryItem.output_data} title={item.tool_name || 'Saved AI result'} />
                   </div>
                 )}
               </div>
@@ -1855,7 +1787,7 @@ const AIToolsPage = () => {
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
               Back to Tools
             </button>
-            <button className="btn sample-data-btn" onClick={loadSampleData}>Load Sample Data</button>
+            {presetScenarios.map((scenario, index) => <button key={scenario.label} type="button" className="btn sample-data-btn" onClick={() => loadSampleData(index)}>{scenario.label} example</button>)}
           </div>
           <div className="card">
             <div className="card-header"><h3 className="card-title">{selectedTool.icon} {selectedTool.title}</h3></div>
@@ -1877,7 +1809,7 @@ const AIToolsPage = () => {
                 ))}
                 <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Generating...' : 'Generate with AI'}</button>
               </form>
-              <AIResultDisplay result={result} loading={loading} />
+              <AIReport response={result} loading={loading} title={selectedTool.title} />
             </div>
           </div>
           {showHistory && <HistoryPanel />}

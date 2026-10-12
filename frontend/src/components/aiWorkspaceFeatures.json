@@ -1,0 +1,100 @@
+[
+  {
+    "name": "CfAutoEditingAssistantSuggestingCutsPacingAdjustments",
+    "id": "cf-auto-editing-assistant-suggesting-cuts-pacing-adjustments-retakes",
+    "title": "Auto-editing assistant suggesting cuts, pacing adjustments, retakes",
+    "description": "Prepare a professional advisory report for auto-editing assistant suggesting cuts, pacing adjustments, retakes using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "CfEmotionalToneAndBodyLanguageAnalysisFor",
+    "id": "cf-emotional-tone-and-body-language-analysis-for-authenticity-scoring",
+    "title": "Emotional tone and body-language analysis for authenticity scoring",
+    "description": "Prepare a professional advisory report for emotional tone and body-language analysis for authenticity scoring using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "CfRealTimeRecordingCoachGivingFeedbackDuring",
+    "id": "cf-real-time-recording-coach-giving-feedback-during-capture",
+    "title": "Real-time recording coach giving feedback during capture",
+    "description": "Prepare a professional advisory report for real-time recording coach giving feedback during capture using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "CfTestimonialCampaignOptimizerRecommendingSelectionAndOrdering",
+    "id": "cf-testimonial-campaign-optimizer-recommending-selection-and-ordering",
+    "title": "Testimonial campaign optimizer recommending selection and ordering",
+    "description": "Prepare a professional advisory report for testimonial campaign optimizer recommending selection and ordering using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "CfTestimonialQualityScorerEmotionalImpactClarityLength",
+    "id": "cf-testimonial-quality-scorer-emotional-impact-clarity-length",
+    "title": "Testimonial quality scorer (emotional impact, clarity, length)",
+    "description": "Prepare a professional advisory report for testimonial quality scorer (emotional impact, clarity, length) using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "CfTranscriptionWithEmotionSentimentMarkersTimelineAligned",
+    "id": "cf-transcription-with-emotion-sentiment-markers-timeline-aligned",
+    "title": "Transcription with emotion/sentiment markers timeline-aligned",
+    "description": "Prepare a professional advisory report for transcription with emotion/sentiment markers timeline-aligned using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "GapAiIsActuallySubstantial18EndpointsTsv",
+    "id": "gap-ai-is-actually-substantial-18-endpoints-tsv-claim",
+    "title": "AI is actually substantial (~18 endpoints); TSV claim of 0 is the data error",
+    "description": "Prepare a professional advisory report for ai is actually substantial (~18 endpoints); tsv claim of 0 is the data error using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "GapLimitedMultiApproverWorkflowSingleApprovalsRoute",
+    "id": "gap-limited-multi-approver-workflow-single-approvals-route",
+    "title": "Limited multi-approver workflow (single approvals route)",
+    "description": "Prepare a professional advisory report for limited multi-approver workflow (single approvals route) using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "GapNoCollaborationCommentingOnDraftTestimonials",
+    "id": "gap-no-collaboration-commenting-on-draft-testimonials",
+    "title": "No collaboration/commenting on draft testimonials",
+    "description": "Prepare a professional advisory report for no collaboration/commenting on draft testimonials using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "GapNoMultiTenantWhiteLabelSupport",
+    "id": "gap-no-multi-tenant-white-label-support",
+    "title": "No multi-tenant white-label support",
+    "description": "Prepare a professional advisory report for no multi-tenant white-label support using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "GapNoNativeLinkedinTiktokPublishing",
+    "id": "gap-no-native-linkedin-tiktok-publishing",
+    "title": "No native LinkedIn/TikTok publishing",
+    "description": "Prepare a professional advisory report for no native linkedin/tiktok publishing using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "GapNoRealTimeRecordingCoachDuringCapture",
+    "id": "gap-no-real-time-recording-coach-during-capture",
+    "title": "No real-time recording coach during capture",
+    "description": "Prepare a professional advisory report for no real-time recording coach during capture using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "GapNoVisionBasedBodyLanguageAnalysisBeyond",
+    "id": "gap-no-vision-based-body-language-analysis-beyond-emotion",
+    "title": "No vision-based body-language analysis beyond emotion",
+    "description": "Prepare a professional advisory report for no vision-based body-language analysis beyond emotion using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "GapNoWebhookNotificationsForApprovalStateChanges",
+    "id": "gap-no-webhook-notifications-for-approval-state-changes",
+    "title": "No webhook notifications for approval state changes",
+    "description": "Prepare a professional advisory report for no webhook notifications for approval state changes using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  }
+]

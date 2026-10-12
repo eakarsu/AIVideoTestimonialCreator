@@ -40,7 +40,15 @@ function createApp({ pool, env = process.env }) {
   app.use('/api/auth', createAuthRouter(pool, env));
   app.use('/api/governed-testimonials', authentication(pool, env), createGovernedTestimonialsRouter(pool, env));
   app.use('/api/ai', authentication(pool, env), createRuntimeAiRouter(pool, env));
-  app.use((_req, res) => res.status(404).json({ error: 'not_found' }));
+
+// Advisory AI reports only; native execution and approval routes stay unchanged.
+const aiWorkspaceSupport = require("./aiWorkspaceAdapters.cjs");
+const aiWorkspaceDatabase = pool;
+app.use('/api/report-workspace', require("./aiWorkspace.cjs").createAIWorkspaceRouter({
+  pool: aiWorkspaceDatabase, env, authenticateToken: aiWorkspaceSupport.verifiedActorAuth(require("./middleware/auth.js").authentication(pool, env)),
+  aiRateLimiter: aiWorkspaceSupport.createWorkspaceLimiter(), features: require("./aiWorkspaceFeatures.json"),
+}));
+app.use((_req, res) => res.status(404).json({ error: 'not_found' }));
   app.use((error, _req, res, _next) => {
     if (error instanceof DomainError) {
       const status = error.code.endsWith('_not_found') ? 404 : error.code.includes('blocked') ? 409 : 422;
