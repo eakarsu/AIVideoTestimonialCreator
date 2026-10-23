@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be set to at least 32 random characters');
+}
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -16,7 +20,7 @@ const auth = (req, res, next) => {
   try {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'No token provided' });
-    req.user = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+    req.user = jwt.verify(token, JWT_SECRET);
     next();
   } catch (e) {
     res.status(401).json({ error: 'Invalid token' });

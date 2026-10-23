@@ -40,6 +40,11 @@ function createApp({ pool, env = process.env }) {
   app.use('/api/auth', createAuthRouter(pool, env));
   app.use('/api/governed-testimonials', authentication(pool, env), createGovernedTestimonialsRouter(pool, env));
   app.use('/api/ai', authentication(pool, env), createRuntimeAiRouter(pool, env));
+  const { createFeaturePackRouter } = require('./featurepack');
+  app.use('/api/featurepack', authentication(pool, env), createFeaturePackRouter({
+    env,
+    listRecords: async (req) => (await pool.query('SELECT * FROM testimonial_projects WHERE tenant_id=$1 ORDER BY created_at DESC LIMIT 200', [req.auth.tenantId])).rows,
+  }));
 
 // Advisory AI reports only; native execution and approval routes stay unchanged.
 const aiWorkspaceSupport = require("./aiWorkspaceAdapters.cjs");
